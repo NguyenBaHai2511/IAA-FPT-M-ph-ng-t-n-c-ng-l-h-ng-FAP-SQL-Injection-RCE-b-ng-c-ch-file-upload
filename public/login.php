@@ -3,6 +3,11 @@
 session_start();
 require_once __DIR__ . '/../src/db.php';
 $error = '';
+// NOTE (tiếng Việt):
+// - Hàm findUserByUsername() được gọi phía dưới và có minh họa SQL Injection (nối chuỗi SQL trực tiếp).
+// - Mặt khác, mật khẩu ở demo này không được kiểm tra (lưu plaintext trong DB). Đây là thiết kế "insecure-by-design"
+//   để phục vụ mục đích nghiên cứu. Trong thực tế cần: băm mật khẩu (bcrypt/argon2), kiểm tra mật khẩu,
+//   và dùng prepared statements cho mọi truy vấn.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';

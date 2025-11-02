@@ -1,6 +1,10 @@
 <?php
-// src/api.php - API demo chứa lỗ hổng logic: confirm_payment chấp nhận bất kỳ payload nào
-// Direct API Call: API không kiểm tra chữ ký/nguồn, chỉ dựa vào tx_ref do client gửi
+// src/api.php - API demo chứa lỗ hổng logic (insecure-by-design để demo)
+// Mô tả vấn đề:
+// - endpoint action=confirm_payment chấp nhận payload JSON và trực tiếp mark payment là 'paid'
+//   dựa trên tx_ref do client gửi mà không có cơ chế verify/chữ ký/timestamp.
+// - Đây là ví dụ về 'insecure business logic' / 'trusting client data'.
+// Mitigation: xác thực nguồn (webhook signature), kiểm tra với provider, và tránh tin tưởng dữ liệu client.
 require_once __DIR__ . '/db.php';
 $action = $_GET['action'] ?? '';
 if ($action === 'confirm_payment') {
@@ -9,6 +13,8 @@ if ($action === 'confirm_payment') {
     $tx = $data['tx_ref'] ?? '';
     $amount = intval($data['amount'] ?? 0);
     // VULN: Không verify chữ ký/ngân hàng, trực tiếp mark paid
+    // NOTE: giữ hành vi gốc cho demo. Trong thực tế, cần verify với hệ thống thanh toán,
+    // kiểm tra trạng thái trong DB, và dùng chữ ký/secret để xác thực request.
     $pdo = getDB();
     $stmt = $pdo->prepare('UPDATE payments SET status = ? WHERE tx_ref = ?');
     $stmt->execute(['paid', $tx]);

@@ -1,6 +1,9 @@
 <?php
 // src/db.php
 // Kết nối SQLite (data/fap.db)
+// NOTE: File này được giữ ở dạng đơn giản để phục vụ mục đích demo nghiên cứu.
+// Có nhiều chỗ minh họa các anti-pattern (ví dụ: lưu password plaintext, dựng SQL bằng concat) --
+// những cách này là không an toàn và KHÔNG được dùng trong môi trường sản xuất.
 function getDB() {
     $dbFile = __DIR__ . '/../data/fap.db';
     $pdo = new PDO('sqlite:' . $dbFile);
@@ -107,7 +110,12 @@ function ensureSchema(PDO $pdo) {
 // CHÚ Ý: Một số hàm dùng concat chuỗi để minh họa SQL Injection (cấm dùng trong sản phẩm thật)
 function findUserByUsername($username) {
     $pdo = getDB();
-    // VULN: trực tiếp nối chuỗi => SQL Injection
+    // VULN: Trực tiếp nối chuỗi => SQL Injection (demo)
+    // Mô tả: hàm này ghép trực tiếp giá trị $username vào câu lệnh SQL.
+    // Nếu $username chứa ký tự như quote (') hoặc payload có cấu trúc SQL,
+    // kẻ tấn công có thể thao túng câu lệnh SQL.
+    // Tại môi trường sản xuất: luôn dùng prepared statements (bind params),
+    // validate/sanitize input, và áp dụng các cơ chế kiểm soát truy cập.
     $sql = "SELECT * FROM users WHERE username = '" . $username . "' LIMIT 1";
     $stmt = $pdo->query($sql);
     return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -115,7 +123,10 @@ function findUserByUsername($username) {
 
 function getStudent($id) {
     $pdo = getDB();
-    // VULN: trực tiếp nối chuỗi từ input
+    // VULN: trực tiếp nối chuỗi từ input => SQL Injection nếu $id đến từ request không kiểm tra
+    // Mô tả: dùng concat để tạo query cho trường numeric. Nếu $id là dữ liệu không tin cậy,
+    // hoặc chứa các ký tự không mong muốn, sẽ dẫn tới lỗi hoặc injection.
+    // Mitigation: ép kiểu rõ ràng (int)$id, hoặc dùng prepared statement: SELECT * FROM students WHERE id = ?
     $sql = "SELECT * FROM students WHERE id = " . $id;
     $stmt = $pdo->query($sql);
     return $stmt->fetch(PDO::FETCH_ASSOC);
