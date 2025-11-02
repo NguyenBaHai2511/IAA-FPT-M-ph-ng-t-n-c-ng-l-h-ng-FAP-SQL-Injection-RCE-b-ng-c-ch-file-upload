@@ -1,0 +1,13 @@
+/* Simple styling with FPT-like orange/green */
+body { font-family: Arial, sans-serif; background: linear-gradient(90deg,#fffaf0,#f2fbff); color:#222; padding:20px; }
+header h1 { color: #ff7a00; }
+.login-box{ max-width:400px; margin:40px auto; padding:20px; border:1px solid #eee; background:#fff; border-radius:6px; }
+input, select, textarea { display:block; width:100%; padding:8px; margin:8px 0; }
+button { background:#ff7a00; color:#fff; border:none; padding:8px 12px; border-radius:4px; }
+.message { color:green; }
+.error { color:red; }
+table{ border-collapse:collapse; width:100%; }
+table td, table th{ border:1px solid #ddd; padding:8px; }
+.user{ float:right; }
+/* small responsive */
+@media(max-width:600px){ .user{ float:none; } }

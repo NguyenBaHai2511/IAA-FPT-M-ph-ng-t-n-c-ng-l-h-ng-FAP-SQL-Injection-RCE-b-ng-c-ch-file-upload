@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    ports:
+      - "8000:80"
+    volumes:
+      - ./public:/var/www/html
+      - ./:/var/www
+      - ./public/uploads:/var/www/html/uploads
+    restart: unless-stopped
