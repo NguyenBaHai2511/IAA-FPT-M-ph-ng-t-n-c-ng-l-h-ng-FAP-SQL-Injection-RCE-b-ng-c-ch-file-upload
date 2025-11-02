@@ -1,4 +1,4 @@
-# IAA-FPT-M-ph-ng-t-n-c-ng-l-h-ng-FAP-SQL-Injection-RCE-b-ng-c-ch-file-upload
+# IAA-FPT-Mô phỏng lỗ hổng trang web FAP, SQL Injection, RCE bằng File Upload
 Kịch bản tấn công trang web quản lí mô phỏng FAP
 ## FAP - Vulnerable Demo (mục đích nghiên cứu)
 
