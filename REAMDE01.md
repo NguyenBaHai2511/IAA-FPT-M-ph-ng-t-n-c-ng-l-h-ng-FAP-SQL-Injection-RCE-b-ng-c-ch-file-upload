@@ -1,10 +1,12 @@
-1. Làm sao biết lỗi SQL nào để sử dụng Payload?
+🛡️ Phân Tích Lỗ hổng Bảo mật: SQL Injection & RCE (Không dùng bảng)
+1. 🔍 SQL Injection (SQLi)
+SQL Injection là lỗ hổng bảo mật xảy ra khi một ứng dụng web kết hợp dữ liệu người dùng trực tiếp vào câu lệnh SQL mà không có bất kỳ biện pháp xử lý an toàn nào.
+
+Làm sao biết lỗi SQL nào để sử dụng Payload?
 Để biết một ứng dụng có bị lỗi SQL Injection hay không và xác định loại lỗi, các nhà nghiên cứu bảo mật thường sử dụng các kỹ thuật kiểm thử sau:
 
 Kiểm thử Dấu nháy đơn (') (Single Quote Test):
-
 Bạn nhập một dấu nháy đơn ' vào trường dữ liệu (ví dụ: username, ID tìm kiếm).
-
 Nếu trang web báo lỗi SQL (ví dụ: SQL syntax error, unexpected '...): Đây là dấu hiệu mạnh mẽ cho thấy dữ liệu người dùng được nối trực tiếp vào câu lệnh SQL mà không được xử lý an toàn.
 
 Kiểm thử Logic Boolean:
@@ -23,30 +25,23 @@ Nếu nhập ' AND 1=1 -- và trang vẫn hoạt động bình thường, nhưng
 Để payload (chuỗi tấn công) logic là `' OR '1'='1' --` hoạt động, biến `$username` mà người dùng nhập vào phải được chế tạo để "khớp" hoàn hảo với các dấu nháy trong code PHP của bạn.
 
 Biến `$username` cần phải chứa:
-`' OR '1'='1' --` *(Lưu ý: có một dấu nháy ở đầu và một khoảng trắng ở cuối)*
+`' OR '1'='1' -- ` *(Lưu ý: có một dấu nháy ở đầu và một khoảng trắng ở cuối)*
 
  
 Do có `LIMIT 1`, câu lệnh sẽ trả về người dùng đầu tiên trong cơ sở dữ liệu, cho phép kẻ tấn công đăng nhập vào tài khoản đó mà không cần biết mật khẩu.
-
 Vì code ghép trực tiếp giá trị do user nhập vào chuỗi SQL mà không dùng parameterized queries. Nếu attacker đặt giá trị chứa dấu nháy và biểu thức logic, SQL sẽ bị sửa — ví dụ username = `' OR '1'='1` → câu SQL trở thành:
-
 SELECT * FROM users WHERE username = '' OR '1'='1' LIMIT 1=> trả về bản ghi đầu tiên (có thể là admin) → bypass đăng nhập.
 
-2. Tệp /etc/shadow là gì?
-Tệp /etc/shadow là một thành phần quan trọng của hệ thống bảo mật người dùng trên các hệ điều hành Linux/Unix.
-
+2. 📁 Tệp /etc/shadow
+Tệp /etc/shadow là một thành phần cực kỳ nhạy cảm của hệ thống bảo mật người dùng trên Linux/Unix.
 Chức năng: Tệp này lưu trữ mật khẩu đã được băm (hashed passwords) và thông tin về thời gian hết hạn của mật khẩu cho tất cả người dùng hệ thống.
-
-Bảo mật: Tệp này chỉ có thể được đọc bởi người dùng root (người quản trị) để bảo vệ các hash mật khẩu khỏi sự truy cập của người dùng thông thường hoặc kẻ tấn công.
-
-Phân biệt với /etc/passwd:
-
-/etc/passwd chứa thông tin cơ bản của người dùng (tên người dùng, ID, thư mục chính, shell mặc định) và thường có thể được đọc bởi tất cả mọi người. Trường mật khẩu trong /etc/passwd chỉ chứa ký tự x hoặc *, cho biết mật khẩu thực đã được lưu trong /etc/shadow.
+Bảo mật: Chỉ người dùng root mới có quyền đọc tệp này. Điều này nhằm bảo vệ các hash mật khẩu khỏi sự truy cập của người dùng thông thường hoặc kẻ tấn công, những người có thể dùng các hash này để thực hiện tấn công bẻ khóa (brute-force) ngoại tuyến.
+Phân biệt với /etc/passwd: Tệp /etc/passwd chỉ chứa thông tin cơ bản của người dùng (username, ID...), và trường mật khẩu của nó chỉ chứa ký tự x hoặc * để chỉ ra rằng mật khẩu thực tế nằm trong /etc/shadow.
+Rủi ro Mật khẩu Ứng dụng: Mật khẩu người dùng trong ứng dụng web (webapp) cần phải được lưu dưới dạng băm mạnh (ví dụ: bcrypt), không bao giờ được lưu dưới dạng văn bản thuần (plaintext), ngay cả trong cơ sở dữ liệu của ứng dụng (ví dụ: data/fap.db).
 
 3. RCE & Unrestricted File Upload:
 
 Nguy cơ RCE: Xảy ra khi một ứng dụng cho phép người dùng tải lên các tệp có đuôi mở rộng mà máy chủ web có thể thực thi (như .php, .jsp). Kẻ tấn công tải lên một tệp chứa mã độc (webshell) và sau đó truy cập nó để chạy bất kỳ lệnh nào trên máy chủ.
-
 Unrestricted File Upload (RCE risk)
 Vị trí: /upload (student/teacher) và /admin/upload_material (admin); ALLOWED_EXT = None (không hạn chế).
 Cách tấn công:
@@ -62,6 +57,7 @@ Hoặc upload webshell, rồi dùng để leo thang tấn công.
 - Nó lưu trữ **mật khẩu đã được băm (hashed passwords)** của tất cả người dùng.
 - Đây là tệp mà kẻ tấn công muốn đọc để lấy các hash này và bẻ khóa chúng (brute-force) offline để tìm ra mật khẩu.
 
+**Các lệnh thực hiện: **
 Lệnh kiếm passwd
 
 [127.0.0.1:8000/uploads/Untitled-1.php?cmd=cat /etc/passwd](http://127.0.0.1:8000/uploads/Untitled-1.php?cmd=cat%20/etc/passwd)
